@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { Result, ValidationError, validationResult } from 'express-validator';
 import ArtistModel from '../../Model/artist.model'
 class ArtistController {
     async getAritsts(req: Request, res: Response) {
@@ -29,7 +30,8 @@ class ArtistController {
             }
             const items = await ArtistModel.find({}, { __v: 0 }).
                 limit(paginationItem.limit).
-                skip((paginationItem.skip - 1) * (paginationItem.limit)).sort(sortItem);
+                skip((paginationItem.skip - 1) * (paginationItem.limit)).
+                sort(sortItem);
             const tottalCount = await ArtistModel.find().count();
             res.json({
                 isSuccess: true,
@@ -73,12 +75,6 @@ class ArtistController {
     async createArtist(req: Request, res: Response) {
         try {
             const { name, imgUrl, coverImgUrl } = req.body;
-            if (!name || !imgUrl || !coverImgUrl) {
-                return res.status(400).json({
-                    isSuccess: false,
-                    message: "All fields are required"
-                })
-            }
             await ArtistModel.create({
                 name,
                 imgUrl,
@@ -99,26 +95,17 @@ class ArtistController {
         try {
             const { id } = req.params
             const { name, imgUrl, coverImgUrl } = req.body;
-            if (!name || !imgUrl || !coverImgUrl) {
-                return res.status(400).json({
-                    isSuccess: false,
-                    message: "All fields are required"
-                })
-            }
-
-
             ArtistModel.findOneAndUpdate({ _id: id }, { name, imgUrl, coverImgUrl }, (err: any, response: any) => {
                 if (err) {
                     return res.status(404).json({
                         isSuccess: false,
                         message: "there are no results"
                     })
-                } else {
-                    return res.json({
-                        isSuccess: true,
-                        message: "Successfully registered"
-                    })
                 }
+                return res.json({
+                    isSuccess: true,
+                    message: "Successfully registered"
+                })
             })
         } catch (error) {
             return res.status(500).json({
@@ -136,12 +123,11 @@ class ArtistController {
                         isSuccess: false,
                         message: "there are no results"
                     })
-                } else {
-                    return res.json({
-                        isSuccess: true,
-                        message: "Successfully removed"
-                    })
                 }
+                return res.json({
+                    isSuccess: true,
+                    message: "Successfully removed"
+                })
             })
         } catch (error) {
             res.status(500).json({
@@ -163,12 +149,11 @@ class ArtistController {
                         isSuccess: false,
                         message: "there are no results"
                     })
-                } else {
-                    res.json({
-                        isSuccess: true,
-                        message: "Successfully registered"
-                    })
                 }
+                res.json({
+                    isSuccess: true,
+                    message: "Successfully registered"
+                })
             })
         } catch (error) {
             return res.status(500).json({

@@ -104,20 +104,21 @@ class TrackAlbumController {
     async createTrackItem(req: Request, res: Response) {
         try {
             const { trackName, audioUrl, album } = req.body;
-            if (!trackName || !audioUrl || !album) {
-                return res.status(400).json({
-                    isSuccess: false,
-                    message: "All fields are required"
-                })
-            }
-            await trackAlbumModel.create({
+            trackAlbumModel.create({
                 trackName,
                 audioUrl,
                 album
-            })
-            return res.json({
-                isSuccess: true,
-                message: "Successfully registered"
+            }, (err: any) => {
+                if (err) {
+                    return res.status(404).json({
+                        isSuccess: false,
+                        message: "there are no results"
+                    })
+                }
+                return res.json({
+                    isSuccess: true,
+                    message: "Successfully registered"
+                })
             })
         } catch (error) {
             return res.status(500).json({

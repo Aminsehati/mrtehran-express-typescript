@@ -28,7 +28,6 @@ class PlayListController {
                     name: Number(name)
                 }
             }
-            console.log(sortItem)
             const items = await playListModel.find({}, { __v: 0 }).
                 limit(pagination.limit).
                 skip((pagination.skip - 1) * pagination.limit).
@@ -57,14 +56,12 @@ class PlayListController {
                         message: "there are no results"
                     })
                 }
-                else {
-                    return res.json({
-                        isSuccess: true,
-                        data: {
-                            response
-                        }
-                    })
-                }
+                return res.json({
+                    isSuccess: true,
+                    data: {
+                        response
+                    }
+                })
             });
         } catch (error) {
             res.status(400).json({
@@ -76,12 +73,22 @@ class PlayListController {
     async createPlayList(req: Request, res: Response) {
         try {
             const { name, imgUrl, coverImgUrl } = req.body;
-            if (!name || !imgUrl || !coverImgUrl) {
+            playListModel.create({
+                name,
+                imgUrl,
+                coverImgUrl
+            }, (err: any) => {
+                if (err) {
+                    return res.status(404).json({
+                        isSuccess: false,
+                        message: "there are no results"
+                    })
+                }
                 return res.json({
-                    isSuccess: false,
-                    message: "All fields are required"
+                    isSuccess: true,
+                    message: "Successfully registered"
                 })
-            }
+            })
             await playListModel.create({
                 name,
                 imgUrl,
@@ -108,17 +115,16 @@ class PlayListController {
                     imgUrl,
                     coverImgUrl
                 }, (err: any, response: any) => {
-                    if (err) {
+                    if (err || response === null) {
                         return res.status(400).json({
                             isSuccess: false,
                             message: "there are no results"
                         })
-                    } else {
-                        res.json({
-                            isSuccess: true,
-                            message: "Successfully registered"
-                        })
                     }
+                    res.json({
+                        isSuccess: true,
+                        message: "Successfully registered"
+                    })
                 })
             }
         } catch (error) {
@@ -132,17 +138,16 @@ class PlayListController {
         try {
             const { id } = req.params;
             playListModel.findOneAndDelete({ _id: id }, (err: any, response: any) => {
-                if (err) {
+                if (err || response === null) {
                     res.status(404).json({
                         isSuccess: false,
                         message: "there are no results"
                     })
-                } else {
-                    res.json({
-                        isSuccess: false,
-                        message: "Successfully removed"
-                    })
                 }
+                res.json({
+                    isSuccess: false,
+                    message: "Successfully removed"
+                })
             })
         } catch (error) {
             res.status(500).json({
@@ -159,17 +164,16 @@ class PlayListController {
                     Followers: 1
                 }
             }, (err: any, response: any) => {
-                if (err) {
+                if (err || response === null) {
                     return res.status(404).json({
                         isSuccess: false,
                         message: "there are no results"
                     })
-                } else {
-                    return res.json({
-                        isSuccess: true,
-                        message: "Successfully registered"
-                    })
                 }
+                return res.json({
+                    isSuccess: true,
+                    message: "Successfully registered"
+                })
             })
         } catch (error) {
             res.status(500).json({

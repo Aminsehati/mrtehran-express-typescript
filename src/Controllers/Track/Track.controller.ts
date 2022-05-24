@@ -92,12 +92,6 @@ class TrackController {
         try {
             const { id } = req.params;
             const { imgUrl, audioUrl, trackName, artists, playlists } = req.body;
-            if (!imgUrl || !audioUrl || !trackName || !artists || !playlists) {
-                return res.status(400).json({
-                    isSuccess: false,
-                    message: "All fields are required"
-                })
-            }
             TrackModel.findOneAndUpdate({ _id: id }, {
                 imgUrl,
                 audioUrl,
@@ -105,8 +99,7 @@ class TrackController {
                 artists: JSON.parse(artists),
                 playlists: JSON.parse(playlists)
             }, (err: any, response: any) => {
-                if (err) {
-                    console.log(req.body);
+                if (err || response === null) {
                     return res.status(404).json({
                         isSuccess: false,
                         message: "All fields are required"
@@ -127,23 +120,24 @@ class TrackController {
     async createTrack(req: Request, res: Response) {
         try {
             const { imgUrl, audioUrl, trackName, artists, playlists, hasPodcast } = req.body;
-            if (!imgUrl || !audioUrl || !trackName || !artists || !playlists) {
-                return res.status(400).json({
-                    isSuccess: false,
-                    message: "All fields are required"
-                })
-            }
-            await TrackModel.create({
+            TrackModel.create({
                 imgUrl,
                 audioUrl,
                 trackName,
                 artists: JSON.parse(artists),
                 playlists: JSON.parse(playlists),
-                hasPodcast
-            })
-            return res.json({
-                isSuccess: true,
-                message: "Successfully registered"
+                hasPodcast: hasPodcast || false
+            }, (err: any) => {
+                if (err) {
+                    return res.status(404).json({
+                        isSuccess: false,
+                        message: "All fields are required"
+                    })
+                }
+                return res.json({
+                    isSuccess: true,
+                    message: "Successfully registered"
+                })
             })
         } catch (error) {
             return res.status(500).json({

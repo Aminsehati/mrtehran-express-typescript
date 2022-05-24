@@ -1,9 +1,10 @@
 import { Request, Response } from 'express'
 import albumModel from '../../Model/album.model'
+import { Track } from '../../interface/track.interface'
 export class AlbumController {
     async getAlbums(req: Request, res: Response) {
         try {
-            const { limit, skip, name, createdAt  } = req.body;
+            const { limit, skip, name, createdAt } = req.body;
             const paginationItem = {
                 limit: limit || 20,
                 skip: skip || 1,
@@ -15,13 +16,13 @@ export class AlbumController {
                     name: Number(name)
                 }
             }
-            if(createdAt){
+            if (createdAt) {
                 sortItem = {
                     ...sortItem,
                     createdAt: Number(createdAt)
                 }
             }
-            const items = await albumModel.find({}, { __v: 0 }).
+            const items:Track[] = await albumModel.find({}, { __v: 0 }).
                 limit(paginationItem.limit).
                 skip((paginationItem.skip - 1) * (paginationItem.limit)).
                 sort(sortItem).
@@ -29,7 +30,7 @@ export class AlbumController {
                     path: "artists",
                     select: { __v: 0 }
                 });
-            const tottalCount = await albumModel.find().count();
+            const tottalCount: number = await albumModel.find().count();
             return res.json({
                 isSuccess: true,
                 data: {
@@ -48,19 +49,18 @@ export class AlbumController {
         try {
             const { id } = req.params;
             albumModel.findOne({ _id: id }, (err: any, response: any) => {
-                if (err) {
+                if (err || response === null) {
                     res.status(404).json({
                         isSuccess: false,
                         message: "there are no results"
                     })
-                } else {
-                    res.json({
-                        isSuccess: true,
-                        data: {
-                            item: response
-                        }
-                    })
                 }
+                return res.json({
+                    isSuccess: true,
+                    data: {
+                        item: response
+                    }
+                })
             }).populate('artists')
         } catch (error) {
             return res.status(500).json({
@@ -78,14 +78,21 @@ export class AlbumController {
                     message: "All fields are required"
                 })
             }
-            await albumModel.create({
+            albumModel.create({
                 name,
                 imgUrl,
                 artists: JSON.parse(artists)
-            });
-            res.json({
-                isSuccess: true,
-                message: "Successfully registered"
+            }, (err: any) => {
+                if (err) {
+                    return res.status(404).json({
+                        isSuccess: false,
+                        message: "there are no results"
+                    })
+                }
+                return res.json({
+                    isSuccess: true,
+                    message: "Successfully registered"
+                })
             })
         } catch (error) {
             console.log(error);
@@ -99,24 +106,17 @@ export class AlbumController {
         try {
             const { id } = req.params;
             const { name, imgUrl, artists } = req.body;
-            if (!name || !imgUrl || !artists) {
-                return res.status(400).json({
-                    isSuccess: false,
-                    message: "All fields are required"
-                })
-            }
             albumModel.findOneAndUpdate({ _id: id }, { name, imgUrl, artists: JSON.parse(artists) }, (err: any, response: any) => {
                 if (err) {
                     return res.status(404).json({
                         isSuccess: false,
                         message: "there are no results"
                     })
-                } else {
-                    return res.json({
-                        isSuccess: false,
-                        message: "Successfully registered"
-                    })
                 }
+                return res.json({
+                    isSuccess: false,
+                    message: "Successfully registered"
+                })
             })
         } catch (error) {
             return res.status(500).json({
